@@ -59,7 +59,6 @@ pyparsing==3.2.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 pytz==2025.1
-pywin32==308
 PyYAML==6.0.2
 qdrant-client==1.13.2
 qwen-vl-utils==0.0.8
