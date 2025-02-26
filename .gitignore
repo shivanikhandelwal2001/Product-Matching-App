@@ -1,2 +1,4 @@
-Stanford_Online_Products/*
+Stanford_Online_Products/
+venv/
 .env
+.streamlit

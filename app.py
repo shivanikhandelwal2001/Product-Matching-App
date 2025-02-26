@@ -3,9 +3,6 @@ import streamlit as st
 import base64
 from io import BytesIO
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 
 collection_name = "product_matching"
@@ -15,8 +12,8 @@ st.title("Product Matching")
 @st.cache_resource
 def get_client():
     q_client = QdrantClient(
-        url=os.getenv("QDRANT_DB_URL"),
-        api_key=os.getenv("QDRANT_API_KEY")
+        url=st.secrets["qdrant_db_url"],
+        api_key=st.secrets["qdrant_api_key"]
     )
     return q_client
 
