@@ -1,0 +1,15 @@
+dotenv==0.9.9
+matplotlib==3.10.0
+numpy==2.0.2
+opencv-python==4.11.0.86
+pandas==2.2.3
+qdrant-client==1.13.2
+qwen-vl-utils==0.0.8
+scikit-learn==1.6.1
+streamlit==1.42.2
+tokenizers==0.21.0
+torch==2.6.0
+torchvision==0.21.0
+traitlets @ file:///home/conda/feedstock_root/build_artifacts/traitlets_1733367359838/work
+transformers @ git+https://github.com/huggingface/transformers@92c5ca9dd70de3ade2af2eb835c96215cc50e815
+umap-learn==0.5.7
