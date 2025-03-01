@@ -1,5 +1,6 @@
-product_images/
-my_env/
+.vscode
+__pycache__
 .env
 .streamlit
-.vscode
+product_images/
+my_env/
