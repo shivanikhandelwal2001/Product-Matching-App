@@ -29,10 +29,6 @@ except RuntimeError:
     asyncio.set_event_loop(asyncio.new_event_loop())
 
 
-# Force bitsandbytes to run on CPU
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
-
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(torch.cuda.is_available())
 
@@ -61,7 +57,7 @@ def load_model():
         # attn_implementation="flash_attention_2",
         device_map="auto",
         low_cpu_mem_usage=True,
-        quantization_config=quantization_config
+        # quantization_config=quantization_config,
     )
 
     qwen_processor = AutoProcessor.from_pretrained(params["VISION_MODEL"])
@@ -75,7 +71,7 @@ def load_model():
     clip_model = CLIPModel.from_pretrained(
         params["EMBEDDING_MODEL"],
         low_cpu_mem_usage=True,
-        quantization_config=quantization_config,
+        # quantization_config=quantization_config,
     ).to(device)
 
     clip_processor = CLIPProcessor.from_pretrained(params["EMBEDDING_MODEL"])
