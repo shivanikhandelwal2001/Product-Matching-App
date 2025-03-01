@@ -111,7 +111,7 @@ tomli==2.2.1
 tornado==6.4.2
 tqdm==4.67.1
 traitlets==5.14.3
-transformers==4.50.0.dev0
+transformers @ git+https://github.com/huggingface/transformers@92c5ca9dd70de3ade2af2eb835c96215cc50e815
 typing_extensions==4.12.2
 tzdata==2025.1
 urllib3==2.3.0
