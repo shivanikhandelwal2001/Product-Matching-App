@@ -11,6 +11,8 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 RUN mkdir .streamlit
 COPY .streamlit/secrets.toml .streamlit/secrets.toml
 
+COPY packages.txt .
+
 COPY product_matching_app.py .
 
 EXPOSE 8501
