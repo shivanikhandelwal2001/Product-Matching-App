@@ -29,6 +29,10 @@ except RuntimeError:
     asyncio.set_event_loop(asyncio.new_event_loop())
 
 
+# Force bitsandbytes to run on CPU
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(torch.cuda.is_available())
 
