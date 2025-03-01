@@ -11,8 +11,8 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 RUN mkdir .streamlit
 COPY .streamlit/secrets.toml .streamlit/secrets.toml
 
-COPY app.py .
+COPY product_matching_app.py .
 
 EXPOSE 8501
 
-CMD ["streamlit", "run", "/product-matching-app/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "/product-matching-app/product_matching_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
