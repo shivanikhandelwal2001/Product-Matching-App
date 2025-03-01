@@ -75,9 +75,11 @@ def get_client():
         url=st.secrets["qdrant_db_url"], api_key=st.secrets["qdrant_api_key"]
     )
 
+    mongo_db_url = st.secrets["mongo_db_url"]
     username = st.secrets["mongo_initdb_root_username"]
     password = st.secrets["mongo_initdb_root_password"]
-    mongo_client = MongoClient(f"mongodb://{username}:{password}@localhost:27017")
+    # mongo_client = MongoClient(f"mongodb://{username}:{password}@localhost:27017")
+    mongo_client = MongoClient(mongo_db_url)
     db = mongo_client["product_db"]
     products_collection = db["products"]
     logs_collection = db["logs"]
