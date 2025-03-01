@@ -1,27 +1,17 @@
-from transformers import Qwen2_5_VLForConditionalGeneration, AutoTokenizer, AutoProcessor
-from transformers import CLIPProcessor, CLIPModel, CLIPTokenizer, BitsAndBytesConfig
-from qwen_vl_utils import process_vision_info
-from quanto import quantize, freeze
-from qdrant_client import QdrantClient
-from qdrant_client.models import VectorParams, Distance, Record
-from qdrant_client.http import models
-from pymongo import MongoClient
-import os
-import streamlit as st
-import requests
 import asyncio
-import json
-import time
-import torch
 import base64
 from io import BytesIO
-from glob import glob
-import cv2
-from PIL import Image
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 
+import streamlit as st
+import torch
+from PIL import Image
+from pymongo import MongoClient
+from qdrant_client import QdrantClient
+from quanto import freeze, quantize
+from qwen_vl_utils import process_vision_info
+from transformers import (AutoProcessor, AutoTokenizer, BitsAndBytesConfig,
+                          CLIPModel, CLIPProcessor, CLIPTokenizer,
+                          Qwen2_5_VLForConditionalGeneration)
 
 try:
     asyncio.get_running_loop()
@@ -38,7 +28,7 @@ params = {
     "EMBEDDING_MODEL": "openai/clip-vit-base-patch32",
     "BATCH_SIZE": 4,
     "IMAGE_NUM": 1000,
-    "IMAGE_SIZE": (224, 224)
+    "IMAGE_SIZE": (224, 224),
 }
 
 
@@ -62,7 +52,6 @@ def load_model():
 
     qwen_processor = AutoProcessor.from_pretrained(params["VISION_MODEL"])
 
-
     quantization_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_compute_dtype=torch.bfloat16,
@@ -83,8 +72,7 @@ def load_model():
 @st.cache_resource
 def get_client():
     q_client = QdrantClient(
-        url=st.secrets["qdrant_db_url"],
-        api_key=st.secrets["qdrant_api_key"]
+        url=st.secrets["qdrant_db_url"], api_key=st.secrets["qdrant_api_key"]
     )
 
     username = st.secrets["mongo_initdb_root_username"]
@@ -104,7 +92,7 @@ def generate_captions(image):
             "role": "user",
             "content": [
                 {"type": "image", "image": image},
-                {"type": "text", "text": "Describe this image in a few words."}
+                {"type": "text", "text": "Describe this image in a few words."},
             ],
         }
     ]
@@ -112,8 +100,8 @@ def generate_captions(image):
     # Preparation for inference
 
     text = qwen_processor.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        )
+        messages, tokenize=False, add_generation_prompt=True
+    )
 
     image_inputs, video_inputs = process_vision_info(messages)
 
@@ -130,19 +118,22 @@ def generate_captions(image):
     # Inference: Generation of the output
     with torch.inference_mode():
         generated_ids = qwen_model.generate(**inputs, max_new_tokens=64)
-        
+
     generated_ids_trimmed = [
-        out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+        out_ids[len(in_ids) :]
+        for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
     ]
 
     output_text = qwen_processor.batch_decode(
-        generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
+        generated_ids_trimmed,
+        skip_special_tokens=True,
+        clean_up_tokenization_spaces=False,
     )
 
     return output_text[0]
 
 
-def get_text_embedding(text): 
+def get_text_embedding(text):
     _, _, clip_model, clip_processor, clip_tokenizer = load_model()
 
     inputs = clip_tokenizer(text, return_tensors="pt").to(device)
@@ -156,7 +147,9 @@ def get_text_embedding(text):
 def get_image_embedding(image):
     _, _, clip_model, clip_processor, clip_tokenizer = load_model()
 
-    image = clip_processor(text=None, images=image, return_tensors="pt")["pixel_values"].to(device)
+    image = clip_processor(text=None, images=image, return_tensors="pt")[
+        "pixel_values"
+    ].to(device)
     with torch.inference_mode():
         embedding = clip_model.get_image_features(image)
     embedding_as_np = embedding.cpu().detach().numpy().flatten().tolist()
@@ -170,7 +163,7 @@ def generate_embeddings(image):
     caption = generate_captions(image)
     image_embedding = get_image_embedding(image)
     text_embedding = get_text_embedding(caption)
-    
+
     return image_embedding, text_embedding, caption
 
 
@@ -181,9 +174,7 @@ def search_similar_images(image_embedding, text_embedding, top_k=6):
 
     query_embedding = image_embedding
     results = q_client.search(
-        collection_name="product_matching",
-        query_vector=query_embedding,
-        limit=top_k
+        collection_name="product_matching", query_vector=query_embedding, limit=top_k
     )
 
     return results
@@ -201,7 +192,9 @@ def fetch_metadata(image_ids):
 def log_query(query_image, base64_image, results):
     """Stores user queries, results, and execution logs in MongoDB."""
     _, _, logs_collection = get_client()
-    logs_collection.insert_one({"query_image": query_image, "base64": base64_image, "results": results})
+    logs_collection.insert_one(
+        {"query_image": query_image, "base64": base64_image, "results": results}
+    )
 
 
 def get_bytes_image(base64_image):
@@ -227,21 +220,20 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
     base_image = image_to_base64(image)
     st.image(image, caption="Uploaded Image", use_container_width=True)
-    
+
     with st.spinner("Extracting embeddings and searching..."):
         image_embedding, text_embedding, caption = generate_embeddings(image)
         results = search_similar_images(image_embedding, text_embedding)
-        
+
         image_ids = [res.id for res in results]
         metadata = fetch_metadata(image_ids)
-        
+
         log_query(uploaded_file.name, base_image, metadata)
-    
+
     st.subheader("Similar Images")
     cols = st.columns(3)
-    
+
     for idx, data in enumerate(metadata):
         with cols[idx % 3]:
             image = get_bytes_image(data["base64"])
             st.image(image, caption=data["captions"], use_container_width=True)
-

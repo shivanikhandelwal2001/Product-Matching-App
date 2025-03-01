@@ -1,9 +1,9 @@
 services:
-  streamlit:
-    build: .
-    container_name: product_matching
-    ports:
-    - 8501:8501
+  # streamlit:
+  #   build: .
+  #   container_name: product_matching
+  #   ports:
+  #   - 8501:8501
 
   mongo:
     image: mongo
