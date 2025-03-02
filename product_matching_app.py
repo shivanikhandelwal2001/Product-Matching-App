@@ -219,9 +219,9 @@ st.write("Upload an image to find similar products!")
 
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
 if uploaded_file is not None:
-    image = Image.open(uploaded_file).convert("RGB")
+    image = Image.open(uploaded_file).convert("RGB").resize(params["IMAGE_SIZE"])
     base_image = image_to_base64(image)
-    st.image(image, caption="Uploaded Image", use_container_width=True)
+    st.image(image, caption="Uploaded Image", use_container_width=True, output_format="JPEG")
 
     with st.spinner("Extracting embeddings and searching..."):
         image_embedding, text_embedding, caption = generate_embeddings(image)
@@ -238,4 +238,4 @@ if uploaded_file is not None:
     for idx, data in enumerate(metadata):
         with cols[idx % 3]:
             image = get_bytes_image(data["base64"])
-            st.image(image, caption=data["captions"], use_container_width=True)
+            st.image(image, caption=data["captions"], use_container_width=True, output_format="JPEG")
