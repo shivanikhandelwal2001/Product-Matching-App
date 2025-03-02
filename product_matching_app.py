@@ -33,7 +33,7 @@ params = {
 
 
 @st.cache_resource
-def load_model():
+def load_qwen_model():
     quantization_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_compute_dtype=torch.bfloat16,
@@ -44,7 +44,7 @@ def load_model():
     qwen_model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
         params["VISION_MODEL"],
         torch_dtype=torch.bfloat16,
-        # attn_implementation="flash_attention_2",
+        attn_implementation="flash_attention_2",
         device_map="auto",
         low_cpu_mem_usage=True,
         # quantization_config=quantization_config,
@@ -52,6 +52,11 @@ def load_model():
 
     qwen_processor = AutoProcessor.from_pretrained(params["VISION_MODEL"])
 
+    return qwen_model, qwen_processor
+
+
+@st.cache_resource
+def load_clip_model():
     quantization_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_compute_dtype=torch.bfloat16,
@@ -66,7 +71,7 @@ def load_model():
     clip_processor = CLIPProcessor.from_pretrained(params["EMBEDDING_MODEL"])
     clip_tokenizer = CLIPTokenizer.from_pretrained(params["EMBEDDING_MODEL"])
 
-    return qwen_model, qwen_processor, clip_model, clip_processor, clip_tokenizer
+    return clip_model, clip_processor, clip_tokenizer
 
 
 @st.cache_resource
@@ -88,7 +93,7 @@ def get_client():
 
 
 def generate_captions(image):
-    qwen_model, qwen_processor, _, _, _ = load_model()
+    qwen_model, qwen_processor = load_qwen_model()
     messages = [
         {
             "role": "user",
@@ -136,7 +141,7 @@ def generate_captions(image):
 
 
 def get_text_embedding(text):
-    _, _, clip_model, clip_processor, clip_tokenizer = load_model()
+    clip_model, clip_processor, clip_tokenizer = load_clip_model()
 
     inputs = clip_tokenizer(text, return_tensors="pt").to(device)
     text_embeddings = clip_model.get_text_features(**inputs)
@@ -147,7 +152,7 @@ def get_text_embedding(text):
 
 
 def get_image_embedding(image):
-    _, _, clip_model, clip_processor, clip_tokenizer = load_model()
+    clip_model, clip_processor, clip_tokenizer = load_clip_model()
 
     image = clip_processor(text=None, images=image, return_tensors="pt")[
         "pixel_values"
@@ -162,9 +167,11 @@ def get_image_embedding(image):
 # Function to generate embeddings
 def generate_embeddings(image):
     """Extracts image and text embeddings from the uploaded image."""
-    caption = generate_captions(image)
+    # caption = generate_captions(image)
+    caption = "test caption"
     image_embedding = get_image_embedding(image)
-    text_embedding = get_text_embedding(caption)
+    # text_embedding = get_text_embedding(caption)
+    text_embedding = [0] * 512
 
     return image_embedding, text_embedding, caption
 
