@@ -1,6 +1,6 @@
 # 🔍 Product Matching System
 
-This project implements a **Product Matching System** that allows users to upload an image and retrieve the most visually and textually similar product images from a database. The system leverages **Qdrant for vector search**, **MongoDB for metadata storage**, and **CLIP for text and image embeddings**. The application is deployed using **Streamlit and Docker**, and the dataset used is **COCO (Common Objects in Context)**. Additionally, **model quantization** has been applied to optimize performance.
+This project implements a **Product Matching System** that allows users to upload an image and retrieve the most visually and textually similar product images from a database. The system leverages **Qdrant for vector search**, **MongoDB for metadata storage**, **Qwen2.5-VL for image captioning**, and **CLIP for text and image embeddings**. The application is deployed using **Streamlit and Docker**, and the dataset used is **COCO (Common Objects in Context)**. Additionally, **model quantization** has been applied to optimize performance.
 
 ---
 
